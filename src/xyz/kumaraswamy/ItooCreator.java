@@ -1,10 +1,18 @@
 package xyz.kumaraswamy;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.job.JobService;
 import android.content.Context;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import androidx.core.app.NotificationCompat;
 import com.google.appinventor.components.runtime.Component;
 import com.google.appinventor.components.runtime.ComponentContainer;
 import com.google.appinventor.components.runtime.Form;
+import com.google.appinventor.components.runtime.util.YailDictionary;
 import com.google.youngandroid.runtime;
 import gnu.expr.Language;
 import gnu.expr.ModuleBody;
@@ -19,7 +27,10 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import gnu.math.IntNum;
 import kawa.standard.Scheme;
 import xyz.kumaraswamy.InstanceForm.FormX;
 
@@ -29,7 +40,8 @@ public class ItooCreator {
 
   public final Context context;
   public final String refScreen;
-  private final boolean appOpen;
+  public final boolean appOpen;
+  private Timer timer;
 
   public EnvironmentX envX;
   private InstanceForm formInst = null;
@@ -39,6 +51,11 @@ public class ItooCreator {
   private final Form activeForm;
   private IntInvoke intIvk;
   private ItooInt ints;
+
+  private String notification_title = "Itoo";
+  private String notification_subtitle = "Itoo Creator";
+
+  private static final String CHANNEL_ID = "Battery Service";
 
   public InstanceForm.Listener listener = new InstanceForm.Listener() {
     @Override
@@ -52,7 +69,7 @@ public class ItooCreator {
     this.context = context;
     this.refScreen = refScreen;
 
-    Log.d(TAG, "Itoo Creator, name = " + procedure);
+    Log.d(TAG, "Itoo Creator, name = " + procedure + ", ref screen = " + refScreen);
 
     activeForm = Form.getActiveForm();
     if (activeForm instanceof FormX) {
@@ -60,6 +77,7 @@ public class ItooCreator {
     } else {
       appOpen = activeForm != null;
     }
+    Log.d(TAG, "ItooCreator: is the app active " + appOpen);
 
     if (!appOpen) {
       envX = new EnvironmentX();
@@ -77,16 +95,78 @@ public class ItooCreator {
       context.setTheme(2131427488);
     }
     if (!appOpen || runIfActive) {
-      startProcedureInvoke(procedure);
+      if (ints == null) {
+        initializeIntVars();
+      }
+      Log.d(TAG, "ItooCreator: app ref instance " + Class.forName(
+              context.getPackageName() + "." +
+                      refScreen).getConstructor().newInstance());
+      boolean typeNormal = true;
+      YailDictionary config = (YailDictionary) startProcedureInvoke("itoo_config");
+      if (config != null) {
+        Log.d(TAG, "ItooCreator: Config = " + config);
+        typeNormal = (boolean) config.get("type");
+        if (config.containsKey("notification")) {
+          YailDictionary notif_config = (YailDictionary) config.get("notification");
+          notification_title = String.valueOf(notif_config.get("title"));
+          notification_subtitle = String.valueOf(notif_config.get("subtitle"));
+        }
+      }
+      if (!typeNormal) {
+        Log.d(TAG, "ItooCreator: multiple invocations");
+        foregroundInitialization();
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+          @Override
+          public void run() {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+              @Override
+              public void run() {
+                try {
+                  startProcedureInvoke(procedure);
+                } catch (Throwable e) {
+                  e.printStackTrace();
+                }
+              }
+            });
+          }
+        }, 0, ((IntNum) config.get("ftimer")).longValue());
+      } else {
+        Log.d(TAG, "ItooCreator: normal invocations");
+        startProcedureInvoke(procedure);
+      }
     } else {
       Log.i(TAG, "Reject Initialization");
     }
   }
 
+  private void foregroundInitialization() {
+    notificationChannel();
+    JobService service = (JobService) context;
+    service.startForeground(177723, new NotificationCompat.Builder(context,
+            CHANNEL_ID) // don't forget create a notification channel first
+            .setOngoing(true)
+            .setSmallIcon(android.R.drawable.ic_menu_info_details)
+            .setContentTitle(notification_title)
+            .setContentText(notification_subtitle)
+            .build());
+  }
+
+  private void notificationChannel() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      NotificationChannel serviceChannel = new NotificationChannel(
+              CHANNEL_ID,
+              "Lite Service",
+              NotificationManager.IMPORTANCE_HIGH
+      );
+      NotificationManager manager = context.getSystemService(NotificationManager.class);
+      manager.createNotificationChannel(serviceChannel);
+    }
+  }
+
+
   private void addIntsToEnvironment() throws Exception {
-    Form form = appOpen ? activeForm : formInst.formX;
-    ints = new ItooInt(form, refScreen);
-    intIvk = new IntInvoke();
+    initializeIntVars();
 
     Map<String, ?> integers = ints.getAll();
     for (String key : integers.keySet()) {
@@ -98,10 +178,20 @@ public class ItooCreator {
     }
   }
 
-  private void startProcedureInvoke(String procName) throws Throwable{
+  private void initializeIntVars() throws Exception {
+    Form form = appOpen ? activeForm : formInst.formX;
+    ints = new ItooInt(form, refScreen);
+    intIvk = new IntInvoke();
+  }
+
+  private Object startProcedureInvoke(String procName) throws Throwable{
     int _int = ints.getInt(procName);
     Log.d(TAG, "startProcedureInvoke: " + _int);
-    intIvk.intInvoke(_int);
+    if (_int == -1) {
+      Log.d(TAG, "startProcedureInvoke: failed to find name(" + procName + ")");
+      return null;
+    }
+    return intIvk.intInvoke(_int);
   }
 
   @SuppressWarnings("unused")
@@ -111,6 +201,9 @@ public class ItooCreator {
 
   @SuppressWarnings("unused")
   public void flagEnd() throws Exception {
+    if (timer != null) {
+      timer.cancel();
+    }
     for (Component component : components.values()) {
       callSilently(component, "onPause");
       callSilently(component, "onDestroy");
@@ -134,19 +227,21 @@ public class ItooCreator {
     private final ModuleBody frameX;
 
     public IntInvoke() throws Exception {
-      Class<?> clazz = Class.forName(context.getPackageName() +
-          "." + refScreen + "$frame");
+      String className = context.getPackageName() +
+              "." + refScreen + "$frame";
+      Log.d(TAG, "IntInvoke: the attempt class name: " + className);
+      Class<?> clazz = Class.forName(className);
       frameX = (ModuleBody) clazz.getConstructor().newInstance();
     }
 
 
-    public void intInvoke(int _int) throws Throwable {
-      intInvoke(_int, new Object[0]);
+    public Object intInvoke(int _int) throws Throwable {
+      return intInvoke(_int, new Object[0]);
     }
 
-    private void intInvoke(int _int, Object... args) throws Throwable {
+    private Object intInvoke(int _int, Object... args) throws Throwable {
       IntBody slex = new IntBody(_int, args.length);
-      applySlex(slex, args);
+      return applySlex(slex, args);
     }
 
     @SuppressWarnings("UnusedReturnValue")

@@ -8,6 +8,7 @@ import android.util.Log;
 public class ItooCreatorService extends JobService {
 
     private static final String TAG = "ItooCreator";
+    private ItooCreator creator;
 
     @Override
     public boolean onStartJob(JobParameters parms) {
@@ -19,7 +20,7 @@ public class ItooCreatorService extends JobService {
         String refScreen = extras.getString("refScreen");
         boolean runIfActive = extras.getBoolean("runIfActive");
         try {
-            new ItooCreator(this, name, refScreen, runIfActive);
+            creator = new ItooCreator(this, name, refScreen, runIfActive);
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -28,6 +29,11 @@ public class ItooCreatorService extends JobService {
 
     @Override
     public boolean onStopJob(JobParameters parms) {
+        try {
+            creator.flagEnd();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return false;
     }
 }
