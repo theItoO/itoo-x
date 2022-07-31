@@ -32,6 +32,7 @@ import java.util.TimerTask;
 
 import gnu.math.IntNum;
 import kawa.standard.Scheme;
+import org.jetbrains.annotations.NotNull;
 import xyz.kumaraswamy.InstanceForm.FormX;
 
 public class ItooCreator {
@@ -164,7 +165,6 @@ public class ItooCreator {
     }
   }
 
-
   private void addIntsToEnvironment() throws Exception {
     initializeIntVars();
 
@@ -184,14 +184,18 @@ public class ItooCreator {
     intIvk = new IntInvoke();
   }
 
-  private Object startProcedureInvoke(String procName) throws Throwable{
+  public Component getInstance(String pkgName) throws Exception {
+    return envX.getComponent(pkgName);
+  }
+
+  public Object startProcedureInvoke(String procName, Object... args) throws Throwable{
     int _int = ints.getInt(procName);
     Log.d(TAG, "startProcedureInvoke: " + _int);
     if (_int == -1) {
       Log.d(TAG, "startProcedureInvoke: failed to find name(" + procName + ")");
       return null;
     }
-    return intIvk.intInvoke(_int);
+    return intIvk.intInvoke(_int, args);
   }
 
   @SuppressWarnings("unused")
@@ -335,13 +339,18 @@ public class ItooCreator {
         throws Exception {
       String name = symbol.getName();
 
-      Class<?> clazz = Class.forName(ints.getPackageNameOf(name));
-      Constructor<?> constructor = clazz.getConstructor(ComponentContainer.class);
-      Component component = (Component) constructor.newInstance(formInstance());
+      Component component = getComponent(ints.getPackageNameOf(name));
 
       put(symbol, component);
       names.put(component, name);
       components.put(name, component);
+    }
+
+    @NotNull
+    private Component getComponent(String name) throws Exception {
+      Class<?> clazz = Class.forName(name);
+      Constructor<?> constructor = clazz.getConstructor(ComponentContainer.class);
+      return (Component) constructor.newInstance(formInstance());
     }
   }
 }
