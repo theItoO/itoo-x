@@ -143,16 +143,24 @@ public class InstanceForm {
     }
 
     @Override
-    public void onDestroy() {  }
+    public void onDestroy() {
+      // prevent default behaviour
+    }
 
     @Override
-    public void onPause() {  }
+    public void onPause() {
+      // prevent default behaviour
+    }
 
     @Override
-    public void onStop() {  }
+    public void onStop() {
+      // prevent default behaviour
+    }
 
     @Override
-    public void onResume() {  }
+    public void onResume() {
+      // prevent default behaviour
+    }
   }
 
   static class ActivityX extends Activity {

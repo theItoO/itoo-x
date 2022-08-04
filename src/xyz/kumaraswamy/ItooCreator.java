@@ -169,11 +169,11 @@ public class ItooCreator {
     initializeIntVars();
 
     Map<String, ?> integers = ints.getAll();
-    for (String key : integers.keySet()) {
-      Integer value = (Integer) integers.get(key);
-      Log.d(TAG, "addIntsToEnvironment: add int (" + key + ", " + value + ")");
+    for (Map.Entry<String, ?> key : integers.entrySet()) {
+      Integer value = (Integer) key.getValue();
+      Log.d(TAG, "addIntsToEnvironment: add int (" + key.getKey() + ", " + value + ")");
       // todo test thus on 10-6-22
-      formInst.formX.symbols.put(ItooInt.PROCEDURE_PREFIX + key
+      formInst.formX.symbols.put(ItooInt.PROCEDURE_PREFIX + key.getKey()
               , new IntBody(value, 0));
     }
   }
