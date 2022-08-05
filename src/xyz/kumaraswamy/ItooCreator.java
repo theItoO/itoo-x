@@ -39,6 +39,7 @@ public class ItooCreator {
 
   private static final String TAG = "ItooCreator";
 
+  private final int jobId;
   public final Context context;
   public final String refScreen;
   public final boolean appOpen;
@@ -67,10 +68,16 @@ public class ItooCreator {
 
   public ItooCreator(Context context, String procedure, String refScreen, boolean runIfActive)
       throws Throwable {
+    this(-1, context, procedure, refScreen, runIfActive);
+  }
+
+  public ItooCreator(int jobId, Context context, String procedure, String refScreen, boolean runIfActive)
+      throws Throwable {
+    this.jobId = jobId;
     this.context = context;
     this.refScreen = refScreen;
 
-    Log.d(TAG, "Itoo Creator, name = " + procedure + ", ref screen = " + refScreen);
+    Log.d(TAG, "Itoo Creator, name = " + procedure + ", ref screen = " + refScreen + " runIfActive = " + runIfActive);
 
     activeForm = Form.getActiveForm();
     if (activeForm instanceof FormX) {
@@ -124,7 +131,7 @@ public class ItooCreator {
               @Override
               public void run() {
                 try {
-                  startProcedureInvoke(procedure);
+                  startProcedureInvoke(procedure, jobId);
                 } catch (Throwable e) {
                   e.printStackTrace();
                 }
@@ -134,7 +141,7 @@ public class ItooCreator {
         }, 0, ((IntNum) config.get("ftimer")).longValue());
       } else {
         Log.d(TAG, "ItooCreator: normal invocations");
-        startProcedureInvoke(procedure);
+        startProcedureInvoke(procedure, jobId);
       }
     } else {
       Log.i(TAG, "Reject Initialization");
