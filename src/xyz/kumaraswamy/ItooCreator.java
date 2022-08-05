@@ -39,7 +39,6 @@ public class ItooCreator {
 
   private static final String TAG = "ItooCreator";
 
-  private final int jobId;
   public final Context context;
   public final String refScreen;
   public final boolean appOpen;
@@ -73,7 +72,6 @@ public class ItooCreator {
 
   public ItooCreator(int jobId, Context context, String procedure, String refScreen, boolean runIfActive)
       throws Throwable {
-    this.jobId = jobId;
     this.context = context;
     this.refScreen = refScreen;
 
