@@ -1,4 +1,4 @@
-package xyz.kumaraswamy;
+package xyz.kumaraswamy.itoox;
 
 import android.app.job.JobParameters;
 import android.app.job.JobService;

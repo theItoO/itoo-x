@@ -1,4 +1,4 @@
-package xyz.kumaraswamy;
+package xyz.kumaraswamy.itoox;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -32,8 +32,7 @@ import java.util.TimerTask;
 
 import gnu.math.IntNum;
 import kawa.standard.Scheme;
-import org.jetbrains.annotations.NotNull;
-import xyz.kumaraswamy.InstanceForm.FormX;
+import xyz.kumaraswamy.itoox.InstanceForm.FormX;
 
 public class ItooCreator {
 
@@ -57,6 +56,7 @@ public class ItooCreator {
   private String notification_subtitle = "Itoo Creator";
 
   private static final String CHANNEL_ID = "Battery Service";
+
 
   public InstanceForm.Listener listener = new InstanceForm.Listener() {
     @Override
@@ -190,7 +190,7 @@ public class ItooCreator {
   }
 
   public Component getInstance(String pkgName) throws Exception {
-    return envX.getComponent(pkgName);
+    return envX.getComponent(pkgName, ints.getPackageNameOf(pkgName));
   }
 
   public Object startProcedureInvoke(String procName, Object... args) throws Throwable{
@@ -343,17 +343,21 @@ public class ItooCreator {
     private void componentInstance(Symbol symbol)
         throws Exception {
       String name = symbol.getName();
-
-      Component component = getComponent(ints.getPackageNameOf(name));
+      Component component = name.equals(refScreen) ? formInst.formX : getComponent(name, ints.getPackageNameOf(name));
 
       put(symbol, component);
       names.put(component, name);
       components.put(name, component);
     }
 
-    @NotNull
-    private Component getComponent(String name) throws Exception {
-      Class<?> clazz = Class.forName(name);
+    private Component getComponent(String name, String packageNameOf) throws Exception {
+      Class<?> clazz;
+      try {
+        clazz = Class.forName(packageNameOf);
+      } catch (ClassNotFoundException e) {
+        Log.d(TAG, "Component Not found Name = " + packageNameOf + " realName = " + name);
+        throw e;
+      }
       Constructor<?> constructor = clazz.getConstructor(ComponentContainer.class);
       return (Component) constructor.newInstance(formInstance());
     }

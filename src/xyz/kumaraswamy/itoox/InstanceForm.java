@@ -1,4 +1,4 @@
-package xyz.kumaraswamy;
+package xyz.kumaraswamy.itoox;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -15,7 +15,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import xyz.kumaraswamy.ItooCreator.EnvironmentX;
+import xyz.kumaraswamy.itoox.ItooCreator.EnvironmentX;
 
 public class InstanceForm {
 
@@ -36,7 +36,7 @@ public class InstanceForm {
     activityX.attach(baseContext, screenName);
     fieldModification(baseContext);
     formX.form$Mnenvironment = envX;
-    formX.baseLinearLayout = new xyz.kumaraswamy.LinearLayout(formX, 0);
+    formX.baseLinearLayout = new LinearLayout(formX, 0);
   }
 
   private void fieldModification(Context context) throws Exception {

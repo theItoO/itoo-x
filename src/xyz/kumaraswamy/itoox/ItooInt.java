@@ -1,4 +1,4 @@
-package xyz.kumaraswamy;
+package xyz.kumaraswamy.itoox;
 
 import android.content.Context;
 import android.content.SharedPreferences;

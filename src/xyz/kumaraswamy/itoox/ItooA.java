@@ -1,4 +1,4 @@
-package xyz.kumaraswamy;
+package xyz.kumaraswamy.itoox;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;

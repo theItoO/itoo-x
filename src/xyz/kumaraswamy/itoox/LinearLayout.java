@@ -1,4 +1,4 @@
-package xyz.kumaraswamy;
+package xyz.kumaraswamy.itoox;
 
 import com.google.appinventor.components.common.ComponentConstants;
 
