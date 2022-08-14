@@ -105,8 +105,7 @@ public class ItooCreator {
         initializeIntVars();
       }
       Log.d(TAG, "ItooCreator: app ref instance " + Class.forName(
-              context.getPackageName() + "." +
-                      refScreen).getConstructor().newInstance());
+              ints.getScreenPkgName(refScreen)).getConstructor().newInstance());
       boolean typeNormal = true;
       YailDictionary config = (YailDictionary) startProcedureInvoke("itoo_config");
       if (config != null) {
@@ -236,8 +235,7 @@ public class ItooCreator {
     private final ModuleBody frameX;
 
     public IntInvoke() throws Exception {
-      String className = context.getPackageName() +
-              "." + refScreen + "$frame";
+      String className = ints.getScreenPkgName(refScreen) + "$frame";
       Log.d(TAG, "IntInvoke: the attempt class name: " + className);
       Class<?> clazz = Class.forName(className);
       frameX = (ModuleBody) clazz.getConstructor().newInstance();
@@ -306,7 +304,18 @@ public class ItooCreator {
   private Form formInstance() throws Exception {
     formInst = new InstanceForm(this);
     formInst.formX.creator = this;
+
+    float deviceDensity = context.getResources().getDisplayMetrics().density;
+    set("deviceDensity", deviceDensity);
+    set("formWidth", (int)((float) context.getResources().getDisplayMetrics().widthPixels / deviceDensity));
+    set("formHeight", (int)((float) context.getResources().getDisplayMetrics().heightPixels / deviceDensity));
     return formInst.formX;
+  }
+
+  private void set(String name, Object value) throws Exception {
+    Field field = Form.class.getDeclaredField(name);
+    field.setAccessible(true);
+    field.set(formInst.formX, value);
   }
 
   private void languageInitialization() throws Exception {
@@ -351,6 +360,7 @@ public class ItooCreator {
     }
 
     private Component getComponent(String name, String packageNameOf) throws Exception {
+      Log.d(TAG, "Create component = " + name + " = " + packageNameOf);
       Class<?> clazz;
       try {
         clazz = Class.forName(packageNameOf);
@@ -358,7 +368,12 @@ public class ItooCreator {
         Log.d(TAG, "Component Not found Name = " + packageNameOf + " realName = " + name);
         throw e;
       }
-      Constructor<?> constructor = clazz.getConstructor(ComponentContainer.class);
+      Constructor<?> constructor;
+      try {
+        constructor = clazz.getConstructor(ComponentContainer.class);
+      } catch (NoSuchMethodException e) {
+        constructor = clazz.getConstructor(Form.class);
+      }
       return (Component) constructor.newInstance(formInstance());
     }
   }

@@ -11,6 +11,9 @@ import gnu.lists.LList;
 import gnu.lists.Pair;
 import gnu.mapping.SimpleSymbol;
 import gnu.mapping.Symbol;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.lang.reflect.Field;
 import java.util.Map;
 
@@ -23,10 +26,12 @@ public class ItooInt {
 
   private final SharedPreferences prefInts;
   private final SharedPreferences prefComponents;
+  private final JSONObject screenPkgNames;
 
-  public ItooInt(Form form, String refScreen) {
+  public ItooInt(Form form, String refScreen) throws JSONException {
     prefInts = getSharedPreference(form, refScreen, 0);
     prefComponents = getSharedPreference(form, refScreen, 1);
+    screenPkgNames = new JSONObject(getSharedPreference(form, "", 2).getString("names", "{}"));
   }
 
   public int getInt(String name) {
@@ -41,9 +46,23 @@ public class ItooInt {
     return prefComponents.getString(name, "");
   }
 
-  public static void saveIntStuff(Form form, String refScreen) throws Throwable{
+  public String getScreenPkgName(String name) throws JSONException {
+    Log.d("ItooCreator", "Get Screen Pkg Name = " + name + " in " + screenPkgNames);
+    return screenPkgNames.getString(name);
+  }
+
+  public static void saveIntStuff(Form form, String refScreen) throws Throwable {
     saveIntsNames(form, getSharedPreference(form, refScreen, 0));
     saveComponentNames(form, getSharedPreference(form, refScreen, 1));
+    saveScreenPkgNames(form, getSharedPreference(form, "", 2));
+  }
+
+  private static void saveScreenPkgNames(Form form, SharedPreferences prefs) throws JSONException {
+    JSONObject object = new JSONObject(prefs.getString("names", "{}"));
+    object.put(form.getClass().getSimpleName(), form.getClass().getName());
+    Log.d("ItooCreator", "Screen Pkg Names = " + object);
+    prefs.edit().putString("names", object.toString()).commit();
+    Log.d("ItooCreator", "Screen Pkg Names Saved");
   }
 
   private static void saveComponentNames(Form form, SharedPreferences prefs) throws Throwable {
