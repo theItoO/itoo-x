@@ -152,6 +152,7 @@ public class ItooCreator {
             CHANNEL_ID) // don't forget create a notification channel first
             .setOngoing(true)
             .setSmallIcon(android.R.drawable.ic_menu_info_details)
+                    .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentTitle(notification_title)
             .setContentText(notification_subtitle)
             .build());
@@ -164,6 +165,7 @@ public class ItooCreator {
               "Lite Service",
               NotificationManager.IMPORTANCE_HIGH
       );
+      serviceChannel.setSound(null, null);
       NotificationManager manager = context.getSystemService(NotificationManager.class);
       manager.createNotificationChannel(serviceChannel);
     }
