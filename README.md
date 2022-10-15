@@ -1,3 +1,3 @@
 ## ItooX
 
-An App Inventor 2 extension created using Rush.
+Framework with ability to create custom app environments in the background.
