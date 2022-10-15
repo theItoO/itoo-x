@@ -55,8 +55,7 @@ public class ItooCreator {
   private String notification_title = "Itoo";
   private String notification_subtitle = "Itoo Creator";
 
-  private static final String CHANNEL_ID = "Battery Service";
-
+  private static final String CHANNEL_ID = "Itoo Service";
 
   public InstanceForm.Listener listener = new InstanceForm.Listener() {
     @Override

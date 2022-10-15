@@ -1,3 +1,6 @@
+// Borrowed code from App Inventor sources
+// mit-cml open source
+
 package xyz.kumaraswamy.itoox;
 
 import com.google.appinventor.components.common.ComponentConstants;

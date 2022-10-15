@@ -52,6 +52,7 @@ public class ItooInt {
   }
 
   public static void saveIntStuff(Form form, String refScreen) throws Throwable {
+    if (form instanceof InstanceForm.FormX) return;
     saveIntsNames(form, getSharedPreference(form, refScreen, 0));
     saveComponentNames(form, getSharedPreference(form, refScreen, 1));
     saveScreenPkgNames(form, getSharedPreference(form, "", 2));
