@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="itoo-x:jar">
+    <output-path>$PROJECT_DIR$/classes/artifacts/itoo_x_jar</output-path>
+    <root id="archive" name="itoo-x.jar">
+      <element id="module-output" name="itoo-x" />
+    </root>
+  </artifact>
+</component>
