@@ -3,6 +3,8 @@ package xyz.kumaraswamy.itoox;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.util.Log;
 import com.google.appinventor.components.runtime.Form;
 import gnu.expr.ModuleMethod;
@@ -53,9 +55,38 @@ public class ItooInt {
 
   public static void saveIntStuff(Form form, String refScreen) throws Throwable {
     if (form instanceof InstanceForm.FormX) return;
-    saveIntsNames(form, getSharedPreference(form, refScreen, 0));
-    saveComponentNames(form, getSharedPreference(form, refScreen, 1));
-    saveScreenPkgNames(form, getSharedPreference(form, "", 2));
+
+    PackageManager pm = form.getPackageManager();
+    String pkgName = form.getPackageName();
+    PackageInfo pkgInfo = null;
+    try {
+      pkgInfo = pm.getPackageInfo(pkgName, 0);
+    } catch (PackageManager.NameNotFoundException e) {
+      e.printStackTrace();
+    }
+    assert pkgInfo != null;
+    long lastUpdateTime = pkgInfo.lastUpdateTime;
+
+    SharedPreferences prefs = getSharedPreference(form, refScreen, 3);
+
+    boolean isChanged = !prefs.contains("lastUpdateTime")
+            || prefs.getLong("lastUpdateTime", -1)
+            != lastUpdateTime;
+
+    if (isChanged) {
+      // saving components, ints, pkgNames
+      // is a very intensive task, since they/it
+      // also involves reflection, so we only save them once
+      // when the app starts or when the app is updated
+      saveIntsNames(form, getSharedPreference(form, refScreen, 0));
+      saveComponentNames(form, getSharedPreference(form, refScreen, 1));
+      saveScreenPkgNames(form, getSharedPreference(form, "", 2));
+
+      prefs.edit().putBoolean("saved", true).commit();
+      prefs.edit().putLong("lastUpdateTime", lastUpdateTime).commit();
+      return;
+    }
+    Log.d("ItooCreator", "Skipping save, already saved ints");
   }
 
   private static void saveScreenPkgNames(Form form, SharedPreferences prefs) throws JSONException {
@@ -88,11 +119,11 @@ public class ItooInt {
 
   private static SharedPreferences getSharedPreference(Form form, String refScreen, int type) {
     return form.getSharedPreferences(
-        "ItooInt_" + type + "_" + refScreen, Context.MODE_PRIVATE);
+            "ItooInt_" + type + "_" + refScreen, Context.MODE_PRIVATE);
   }
 
   private static void saveIntsNames(Form form, SharedPreferences prefs)
-      throws Throwable {
+          throws Throwable {
     Editor editor = prefs.edit();
     Field field = form.getClass().getField(VARS_FIELD_NAME);
     LList variables = (LList) field.get(form);
@@ -105,7 +136,7 @@ public class ItooInt {
       String name = ((Symbol) asPair.get(0)).getName();
       if (name.startsWith(PROCEDURE_PREFIX)) {
         ModuleMethod method = (ModuleMethod)
-            ((ModuleMethod) asPair.get(1)).apply0();
+                ((ModuleMethod) asPair.get(1)).apply0();
         int selector = method.selector;
         Log.d("ItooCreator", "Put(" + name + ", " + selector + ")");
         editor.putInt(name.substring(PROCEDURE_PREFIX.length()), selector);
