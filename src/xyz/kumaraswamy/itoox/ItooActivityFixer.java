@@ -41,7 +41,7 @@ public class ItooActivityFixer implements Application.ActivityLifecycleCallbacks
     private final ItooDestroyListener listener;
     private final boolean resetForm;
 
-    private ItooActivityFixer(Application application, ItooDestroyListener listener, boolean resetForm) {
+    public ItooActivityFixer(Application application, ItooDestroyListener listener, boolean resetForm) {
         this.application = application;
         // keep that private so other classes
         // cant access that directly

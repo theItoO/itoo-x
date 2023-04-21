@@ -150,6 +150,7 @@ public class InstanceForm {
     @Override
     public void onPause() {
       // prevent default behaviour
+      Log.d(TAG, "onPause() ignore default behaviour.");
     }
 
     @Override

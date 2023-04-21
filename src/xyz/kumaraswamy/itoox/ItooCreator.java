@@ -12,6 +12,7 @@ import androidx.core.app.NotificationCompat;
 import com.google.appinventor.components.runtime.Component;
 import com.google.appinventor.components.runtime.ComponentContainer;
 import com.google.appinventor.components.runtime.Form;
+import com.google.appinventor.components.runtime.Texting;
 import com.google.appinventor.components.runtime.util.YailDictionary;
 import com.google.youngandroid.runtime;
 import gnu.expr.Language;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicReference;
 
 import gnu.math.IntNum;
 import kawa.standard.Scheme;
@@ -57,6 +59,16 @@ public class ItooCreator {
 
   private static final String CHANNEL_ID = "Itoo Service";
 
+  private static final AtomicReference<ItooCreator> activeCreator = new AtomicReference<>();
+
+  synchronized public static void lifecycleOnStop() {
+    if (activeCreator.get() == null) {
+      Log.d(TAG, "lifecycleOnStop Found Null Returning");
+      return;
+    }
+    activeCreator.get().onAppStopped();
+  }
+
   public InstanceForm.Listener listener = new InstanceForm.Listener() {
     @Override
     public void event(Component component, String componentName, String eventName, Object... args) {
@@ -77,6 +89,7 @@ public class ItooCreator {
     Log.d(TAG, "Itoo Creator, name = " + procedure + ", ref screen = " + refScreen + " runIfActive = " + runIfActive);
 
     activeForm = Form.getActiveForm();
+    Log.d(TAG, "ItooCreator: active form = " + activeForm);
     if (activeForm instanceof FormX) {
       appOpen = false;
     } else {
@@ -219,6 +232,14 @@ public class ItooCreator {
     }
     Language.setCurrentLanguage(null);
     activeFieldModification(false);
+  }
+
+  // called the extension implementing the
+  // itoo framework
+
+  public void onAppStopped() {
+    Log.d(TAG, "Creator received onPause()");
+    Log.d(TAG, "Texting Running = " + Texting.isRunning());
   }
 
   private void callSilently(Component component, String name) {

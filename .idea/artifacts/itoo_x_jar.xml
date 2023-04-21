@@ -3,6 +3,8 @@
     <output-path>$PROJECT_DIR$/classes/artifacts/itoo_x_jar</output-path>
     <root id="archive" name="itoo-x.jar">
       <element id="module-output" name="itoo-x" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/deps/event-bus.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/deps/eventbus-java-3.3.1.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>
