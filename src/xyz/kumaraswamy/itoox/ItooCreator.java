@@ -54,10 +54,7 @@ public class ItooCreator {
   private IntInvoke intIvk;
   private ItooInt ints;
 
-  private String notification_title = "Itoo";
-  private String notification_subtitle = "Itoo Creator";
-
-  private static final String CHANNEL_ID = "Itoo Service";
+  private boolean isStopped = false;
 
   private static final AtomicReference<ItooCreator> activeCreator = new AtomicReference<>();
 
@@ -123,15 +120,9 @@ public class ItooCreator {
       if (config != null) {
         Log.d(TAG, "ItooCreator: Config = " + config);
         typeNormal = (boolean) config.get("type");
-        if (config.containsKey("notification")) {
-          YailDictionary notif_config = (YailDictionary) config.get("notification");
-          notification_title = String.valueOf(notif_config.get("title"));
-          notification_subtitle = String.valueOf(notif_config.get("subtitle"));
-        }
       }
       if (!typeNormal) {
         Log.d(TAG, "ItooCreator: multiple invocations");
-        foregroundInitialization();
         timer = new Timer();
         timer.schedule(new TimerTask() {
           @Override
@@ -154,32 +145,6 @@ public class ItooCreator {
       }
     } else {
       Log.i(TAG, "Reject Initialization");
-    }
-  }
-
-  private void foregroundInitialization() {
-    notificationChannel();
-    JobService service = (JobService) context;
-    service.startForeground(177723, new NotificationCompat.Builder(context,
-            CHANNEL_ID) // don't forget create a notification channel first
-            .setOngoing(true)
-            .setSmallIcon(android.R.drawable.ic_menu_info_details)
-                    .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setContentTitle(notification_title)
-            .setContentText(notification_subtitle)
-            .build());
-  }
-
-  private void notificationChannel() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      NotificationChannel serviceChannel = new NotificationChannel(
-              CHANNEL_ID,
-              "Lite Service",
-              NotificationManager.IMPORTANCE_HIGH
-      );
-      serviceChannel.setSound(null, null);
-      NotificationManager manager = context.getSystemService(NotificationManager.class);
-      manager.createNotificationChannel(serviceChannel);
     }
   }
 
@@ -223,10 +188,19 @@ public class ItooCreator {
 
   @SuppressWarnings("unused")
   public void flagEnd() throws Exception {
+    if (isStopped) {
+      // don't do it again if we are already stopped
+      return;
+    }
+    // when the service is being stopped by the Android system
+    // we need to be quicker
+    isStopped = true;
+    Log.d(TAG, "flagEnd() called");
     if (timer != null) {
       timer.cancel();
     }
     for (Component component : components.values()) {
+      callSilently(component, "signalEnd");
       callSilently(component, "onPause");
       callSilently(component, "onDestroy");
     }
