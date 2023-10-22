@@ -1,14 +1,9 @@
 package xyz.kumaraswamy.itoox;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.job.JobService;
 import android.content.Context;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import androidx.core.app.NotificationCompat;
 import com.google.appinventor.components.runtime.Component;
 import com.google.appinventor.components.runtime.ComponentContainer;
 import com.google.appinventor.components.runtime.Form;
@@ -21,20 +16,16 @@ import gnu.expr.ModuleMethod;
 import gnu.mapping.CallContext;
 import gnu.mapping.SimpleEnvironment;
 import gnu.mapping.Symbol;
+import gnu.math.IntNum;
+import kawa.standard.Scheme;
+import xyz.kumaraswamy.itoox.InstanceForm.FormX;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-
-import gnu.math.IntNum;
-import kawa.standard.Scheme;
-import xyz.kumaraswamy.itoox.InstanceForm.FormX;
 
 public class ItooCreator {
 
@@ -73,12 +64,18 @@ public class ItooCreator {
     }
   };
 
+  public interface EndListener {
+    void onEnd();
+  }
+
+  private final List<EndListener> endListeners = new ArrayList<>();
+
   public ItooCreator(Context context, String procedure, String refScreen, boolean runIfActive)
       throws Throwable {
     this(-1, context, procedure, refScreen, runIfActive);
   }
 
-  public ItooCreator(int jobId, Context context, String procedure, String refScreen, boolean runIfActive)
+  public ItooCreator(final int jobId, Context context, final String procedure, String refScreen, boolean runIfActive)
       throws Throwable {
     this.context = context;
     this.refScreen = refScreen;
@@ -111,6 +108,7 @@ public class ItooCreator {
     }
     if (!appOpen || runIfActive) {
       if (ints == null) {
+        Log.d(TAG, "Initializing Ints");
         initializeIntVars();
       }
       Log.d(TAG, "ItooCreator: app ref instance " + Class.forName(
@@ -148,6 +146,14 @@ public class ItooCreator {
     }
   }
 
+  public void addEndListener(EndListener listener) {
+    endListeners.add(listener);
+  }
+
+  public void removeEndListener(EndListener listener) {
+    endListeners.remove(listener);
+  }
+
   private void addIntsToEnvironment() throws Exception {
     initializeIntVars();
 
@@ -173,7 +179,7 @@ public class ItooCreator {
 
   public Object startProcedureInvoke(String procName, Object... args) throws Throwable{
     int _int = ints.getInt(procName);
-    Log.d(TAG, "startProcedureInvoke: " + _int);
+    Log.d(TAG, "startProcedureInvoke: " + procName + " & " + _int);
     if (_int == -1) {
       Log.d(TAG, "startProcedureInvoke: failed to find name(" + procName + ")");
       return null;
@@ -198,6 +204,9 @@ public class ItooCreator {
     Log.d(TAG, "flagEnd() called");
     if (timer != null) {
       timer.cancel();
+    }
+    for (EndListener endListener : endListeners) {
+      endListener.onEnd();
     }
     for (Component component : components.values()) {
       callSilently(component, "signalEnd");
