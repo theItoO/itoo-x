@@ -9,6 +9,8 @@ import android.util.Log;
 import com.google.appinventor.components.runtime.AndroidViewComponent;
 import com.google.appinventor.components.runtime.Component;
 import com.google.appinventor.components.runtime.Form;
+import com.google.appinventor.components.runtime.PermissionResultHandler;
+import com.google.appinventor.components.runtime.util.BulkPermissionRequest;
 import gnu.mapping.SimpleEnvironment;
 import gnu.mapping.Symbol;
 import java.lang.reflect.Field;
@@ -140,6 +142,18 @@ public class InstanceForm {
         e.printStackTrace();
         Log.e(TAG, "Unable To Invoke Event '" + eventName + "'");
       }
+    }
+
+    @Override
+    public void askPermission(String permission, PermissionResultHandler responseRequestor) {
+      // we are not allowed to ask for permissions in the background
+      responseRequestor.HandlePermissionResponse(permission, true);
+    }
+
+    @Override
+    public void askPermission(BulkPermissionRequest request) {
+      // we are not allowed to ask for permissions in the background
+      request.onGranted();
     }
 
     @Override
