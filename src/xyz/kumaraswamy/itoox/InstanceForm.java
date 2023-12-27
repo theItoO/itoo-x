@@ -82,7 +82,7 @@ public class InstanceForm {
 
     public LinearLayout baseLinearLayout;
 
-    public final HashMap<String, Object> symbols = new HashMap<>();
+    public final HashMap<String, Object> symbols = new HashMap<String, Object>();
 
     public SimpleEnvironment global$Mnvar$Mnenvironment = new SimpleEnvironment() {
 

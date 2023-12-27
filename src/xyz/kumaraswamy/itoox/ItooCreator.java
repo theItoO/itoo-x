@@ -37,7 +37,7 @@ public class ItooCreator {
   public EnvironmentX envX;
   private InstanceForm formInst = null;
 
-  private final HashMap<String, Component> components = new HashMap<>();
+  private final HashMap<String, Component> components = new HashMap<String, Component>();
 
   private final Form activeForm;
   private IntInvoke intIvk;
@@ -56,7 +56,7 @@ public class ItooCreator {
     void onEnd();
   }
 
-  private final List<EndListener> endListeners = new ArrayList<>();
+  private final List<EndListener> endListeners = new ArrayList<EndListener>();
 
   @Deprecated
   public ItooCreator(Context context,
@@ -203,8 +203,7 @@ public class ItooCreator {
     try {
       Method method = component.getClass().getMethod(name);
       method.invoke(component);
-    } catch (InvocationTargetException
-             | IllegalAccessException | NoSuchMethodException e) {
+    } catch (Exception e) {
       // simply ignore the exception
     }
   }
@@ -309,7 +308,7 @@ public class ItooCreator {
 
   public class EnvironmentX extends SimpleEnvironment {
 
-    public final HashMap<Component, String> names = new HashMap<>();
+    public final Map<Component, String> names = new HashMap<Component, String>();
 
     public String toSimpleName(Component component) {
       return names.get(component);
