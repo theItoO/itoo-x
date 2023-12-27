@@ -1,14 +1,11 @@
 package xyz.kumaraswamy.itoox;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import com.google.appinventor.components.runtime.Component;
 import com.google.appinventor.components.runtime.ComponentContainer;
 import com.google.appinventor.components.runtime.Form;
 import com.google.appinventor.components.runtime.Texting;
-import com.google.appinventor.components.runtime.util.YailDictionary;
 import com.google.youngandroid.runtime;
 import gnu.expr.Language;
 import gnu.expr.ModuleBody;
@@ -16,7 +13,6 @@ import gnu.expr.ModuleMethod;
 import gnu.mapping.CallContext;
 import gnu.mapping.SimpleEnvironment;
 import gnu.mapping.Symbol;
-import gnu.math.IntNum;
 import kawa.standard.Scheme;
 import xyz.kumaraswamy.itoox.InstanceForm.FormX;
 
@@ -24,8 +20,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ItooCreator {
 
@@ -34,7 +33,6 @@ public class ItooCreator {
   public final Context context;
   public final String refScreen;
   public final boolean appOpen;
-  private Timer timer;
 
   public EnvironmentX envX;
   private InstanceForm formInst = null;
@@ -46,16 +44,6 @@ public class ItooCreator {
   private ItooInt ints;
 
   private boolean isStopped = false;
-
-  private static final AtomicReference<ItooCreator> activeCreator = new AtomicReference<>();
-
-  synchronized public static void lifecycleOnStop() {
-    if (activeCreator.get() == null) {
-      Log.d(TAG, "lifecycleOnStop Found Null Returning");
-      return;
-    }
-    activeCreator.get().onAppStopped();
-  }
 
   public InstanceForm.Listener listener = new InstanceForm.Listener() {
     @Override
@@ -70,17 +58,34 @@ public class ItooCreator {
 
   private final List<EndListener> endListeners = new ArrayList<>();
 
-  public ItooCreator(Context context, String procedure, String refScreen, boolean runIfActive)
+  @Deprecated
+  public ItooCreator(Context context,
+                     String procedure,
+                     String refScreen,
+                     boolean runIfActive)
       throws Throwable {
-    this(-1, context, procedure, refScreen, runIfActive);
+    this(context, refScreen, runIfActive);
+    startProcedureInvoke(procedure, -1);
   }
 
-  public ItooCreator(final int jobId, Context context, final String procedure, String refScreen, boolean runIfActive)
-      throws Throwable {
+  public ItooCreator(final int jobId,
+                     Context context,
+                     final String procedure,
+                     String refScreen,
+                     boolean runIfActive) throws Throwable {
+    this(context, refScreen, runIfActive);
+    startProcedureInvoke(procedure, jobId);
+  }
+
+  public ItooCreator(
+      Context context,
+      String refScreen,
+      boolean runIfActive
+  ) throws Throwable {
     this.context = context;
     this.refScreen = refScreen;
 
-    Log.d(TAG, "Itoo Creator, name = " + procedure + ", ref screen = " + refScreen + " runIfActive = " + runIfActive);
+    Log.d(TAG, "Itoo Creator, ref screen: " + refScreen + ", run if active = " + runIfActive);
 
     activeForm = Form.getActiveForm();
     Log.d(TAG, "ItooCreator: active form = " + activeForm);
@@ -112,35 +117,7 @@ public class ItooCreator {
         initializeIntVars();
       }
       Log.d(TAG, "ItooCreator: app ref instance " + Class.forName(
-              ints.getScreenPkgName(refScreen)).getConstructor().newInstance());
-      boolean typeNormal = true;
-      YailDictionary config = (YailDictionary) startProcedureInvoke("itoo_config");
-      if (config != null) {
-        Log.d(TAG, "ItooCreator: Config = " + config);
-        typeNormal = (boolean) config.get("type");
-      }
-      if (!typeNormal) {
-        Log.d(TAG, "ItooCreator: multiple invocations");
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-          @Override
-          public void run() {
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-              @Override
-              public void run() {
-                try {
-                  startProcedureInvoke(procedure, jobId);
-                } catch (Throwable e) {
-                  e.printStackTrace();
-                }
-              }
-            });
-          }
-        }, 0, ((IntNum) config.get("ftimer")).longValue());
-      } else {
-        Log.d(TAG, "ItooCreator: normal invocations");
-        startProcedureInvoke(procedure, jobId);
-      }
+          ints.getScreenPkgName(refScreen)).getConstructor().newInstance());
     } else {
       Log.i(TAG, "Reject Initialization");
     }
@@ -163,7 +140,7 @@ public class ItooCreator {
       Log.d(TAG, "addIntsToEnvironment: add int (" + key.getKey() + ", " + value + ")");
       // todo test thus on 10-6-22
       formInst.formX.symbols.put(ItooInt.PROCEDURE_PREFIX + key.getKey()
-              , new IntBody(value, 0));
+          , new IntBody(value, 0));
     }
   }
 
@@ -177,7 +154,7 @@ public class ItooCreator {
     return envX.getComponent(pkgName, ints.getPackageNameOf(pkgName));
   }
 
-  public Object startProcedureInvoke(String procName, Object... args) throws Throwable{
+  public Object startProcedureInvoke(String procName, Object... args) throws Throwable {
     int _int = ints.getInt(procName);
     Log.d(TAG, "startProcedureInvoke: " + procName + " & " + _int);
     if (_int == -1) {
@@ -202,9 +179,6 @@ public class ItooCreator {
     // we need to be quicker
     isStopped = true;
     Log.d(TAG, "flagEnd() called");
-    if (timer != null) {
-      timer.cancel();
-    }
     for (EndListener endListener : endListeners) {
       endListener.onEnd();
     }
@@ -230,7 +204,7 @@ public class ItooCreator {
       Method method = component.getClass().getMethod(name);
       method.invoke(component);
     } catch (InvocationTargetException
-        | IllegalAccessException | NoSuchMethodException e) {
+             | IllegalAccessException | NoSuchMethodException e) {
       // simply ignore the exception
     }
   }
@@ -258,6 +232,7 @@ public class ItooCreator {
 
     @SuppressWarnings("UnusedReturnValue")
     public Object applySlex(ModuleMethod method, Object... args) throws Throwable {
+      Log.d(TAG, "applySlex: " + method + " " + Arrays.toString(args));
       switch (args.length) {
         case 0:
           return frameX.apply0(method);
@@ -283,7 +258,7 @@ public class ItooCreator {
 
     @Override
     public Object applyN(Object[] args) throws Throwable {
-      Log.d(TAG, "applyN: with args("+ Arrays.toString(args) + ")");
+      Log.d(TAG, "applyN: with args(" + Arrays.toString(args) + ")");
       return intIvk.applySlex(this, args);
     }
   }
@@ -312,8 +287,8 @@ public class ItooCreator {
 
     float deviceDensity = context.getResources().getDisplayMetrics().density;
     set("deviceDensity", deviceDensity);
-    set("formWidth", (int)((float) context.getResources().getDisplayMetrics().widthPixels / deviceDensity));
-    set("formHeight", (int)((float) context.getResources().getDisplayMetrics().heightPixels / deviceDensity));
+    set("formWidth", (int) ((float) context.getResources().getDisplayMetrics().widthPixels / deviceDensity));
+    set("formHeight", (int) ((float) context.getResources().getDisplayMetrics().heightPixels / deviceDensity));
     return formInst.formX;
   }
 
@@ -342,6 +317,7 @@ public class ItooCreator {
 
     @Override
     public boolean isBound(Symbol key, Object property) {
+      Log.d(TAG, "isBound: " + key.getName());
       String name = key.getName();
       if (!components.containsKey(name)) {
         try {
