@@ -1,3 +1,7 @@
+// Copyright (C) 2023 Kumaraswamy B G
+// GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+// See LICENSE for full details
+
 package xyz.kumaraswamy.itoox;
 
 import android.content.Context;
@@ -18,7 +22,6 @@ import xyz.kumaraswamy.itoox.InstanceForm.FormX;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
