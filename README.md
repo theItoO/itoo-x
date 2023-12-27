@@ -36,4 +36,6 @@ if (result.success()) {
 
 1. Do not use global variables in the background
 2. Do not use UI components, they do not work
-3. Avoid using TinyDB, use Itoo's Store/Fetch property blocks
+3. Avoid using TinyDB, use `ItooPreferences`
+
+Full docs available at [themelon.space/itoox](htps://themelon.space/itoox)
