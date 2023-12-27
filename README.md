@@ -6,11 +6,11 @@ Itoo X is a framework that creates a virtual App Inventor environment for backgr
 
 Example for simple usage of the framework:
 
-1. Add `Itoo.saveIntStuff` in your extension's constructor
+1. Add `Framework.create()` in your extension's constructor
 
 ```java
 public MyExtension(ComponentContainer container) throws Throwable {
-  ItooInt.saveIntStuff(form, screenName);
+  Framework.create();
   ...
 }
 ```
