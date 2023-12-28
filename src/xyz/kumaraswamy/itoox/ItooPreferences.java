@@ -52,8 +52,10 @@ public class ItooPreferences {
     try {
       fileInput = new FileInputStream(file);
       byte[] bytes = new byte[fileInput.available()];
-      fileInput.read(bytes);
-
+      int n = fileInput.read(bytes);
+      if (0 >= n) {
+        return defaultValue;
+      }
       return JsonUtil.getObjectFromJson(new String(bytes), true);
     } catch (IOException e) {
       throw new RuntimeException(e);

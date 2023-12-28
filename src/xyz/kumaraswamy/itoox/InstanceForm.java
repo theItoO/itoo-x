@@ -90,13 +90,6 @@ public class InstanceForm {
 
     public SimpleEnvironment global$Mnvar$Mnenvironment = new SimpleEnvironment() {
 
-      public void addNewInt(Symbol key, Object newValue) {
-        // todo this isnt caled
-        Log.d(TAG, "put: " + key + " = " + newValue);
-        System.out.println(symbols);
-        symbols.put(key.getName(), newValue);
-      }
-
       @Override
       public boolean isBound(Symbol key, Object property) {
         String name = key.getName();
