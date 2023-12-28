@@ -20,6 +20,7 @@ import gnu.mapping.Symbol;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 import xyz.kumaraswamy.itoox.ItooCreator.EnvironmentX;
 
@@ -86,7 +87,7 @@ public class InstanceForm {
 
     public LinearLayout baseLinearLayout;
 
-    public final HashMap<String, Object> symbols = new HashMap<String, Object>();
+    public final Map<String, Object> symbols = new HashMap<String, Object>();
 
     public SimpleEnvironment global$Mnvar$Mnenvironment = new SimpleEnvironment() {
 
