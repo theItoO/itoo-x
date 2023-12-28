@@ -8,19 +8,24 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import com.google.appinventor.components.runtime.AndroidViewComponent;
-import com.google.appinventor.components.runtime.Component;
-import com.google.appinventor.components.runtime.Form;
-import com.google.appinventor.components.runtime.PermissionResultHandler;
+import com.google.appinventor.components.runtime.*;
+import com.google.appinventor.components.runtime.collect.Lists;
+import com.google.appinventor.components.runtime.collect.Maps;
+import com.google.appinventor.components.runtime.collect.Sets;
 import com.google.appinventor.components.runtime.util.BulkPermissionRequest;
 import gnu.mapping.SimpleEnvironment;
 import gnu.mapping.Symbol;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map;
+import java.util.Set;
 
 import xyz.kumaraswamy.itoox.ItooCreator.EnvironmentX;
 
@@ -87,6 +92,11 @@ public class InstanceForm {
 
     public LinearLayout baseLinearLayout;
 
+    private int mRequestCode = 0;
+
+    private final HashMap<Integer, ActivityResultListener> activityResultMap = Maps.newHashMap();
+    private final HashMap<Integer, Set<ActivityResultListener>> activityResultMultiMap = Maps.newHashMap();
+
     public final Map<String, Object> symbols = new HashMap<String, Object>();
 
     public SimpleEnvironment global$Mnvar$Mnenvironment = new SimpleEnvironment() {
@@ -139,6 +149,67 @@ public class InstanceForm {
       } catch (Throwable e) {
         e.printStackTrace();
         Log.e(TAG, "Unable To Invoke Event '" + eventName + "'");
+      }
+    }
+
+    @Override
+    public void startActivityForResult(Intent intent, int requestCode) {
+      Log.d(TAG, "Form ignoring startActivityForResult(" + intent + ", " + requestCode + ")");
+      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+      creator.context.startActivity(intent);
+
+      ActivityResultListener component = activityResultMap.get(requestCode);
+      if (component != null) {
+        component.resultReturned(requestCode, Activity.RESULT_OK, null);
+      }
+      // Many components are interested in this request (e.g., Texting, PhoneCall)
+      Set<ActivityResultListener> listeners = activityResultMultiMap.get(requestCode);
+      if (listeners != null) {
+        for (ActivityResultListener listener : listeners.toArray(new ActivityResultListener[0])) {
+          listener.resultReturned(requestCode, Activity.RESULT_OK, null);
+        }
+      }
+    }
+
+    @Override
+    public int registerForActivityResult(ActivityResultListener listener) {
+      int requestCode = mRequestCode++;
+      activityResultMap.put(requestCode, listener);
+      return requestCode;
+    }
+
+    @Override
+    public void registerForActivityResult(ActivityResultListener listener, int requestCode) {
+      Set<ActivityResultListener> listeners = activityResultMultiMap.get(requestCode);
+      if (listeners == null) {
+        listeners = Sets.newHashSet();
+        activityResultMultiMap.put(requestCode, listeners);
+      }
+      listeners.add(listener);
+    }
+
+    @Override
+    public void unregisterForActivityResult(ActivityResultListener listener) {
+      List<Integer> keysToDelete = Lists.newArrayList();
+      for (java.util.Map.Entry<Integer, ActivityResultListener> mapEntry : activityResultMap.entrySet()) {
+        if (listener.equals(mapEntry.getValue())) {
+          keysToDelete.add(mapEntry.getKey());
+        }
+      }
+      for (Integer key : keysToDelete) {
+        activityResultMap.remove(key);
+      }
+
+      // Remove any simulated broadcast receivers
+      Iterator<Map.Entry<Integer, Set<ActivityResultListener>>> it =
+          activityResultMultiMap.entrySet().iterator();
+      while (it.hasNext()) {
+        Map.Entry<Integer, Set<ActivityResultListener>> entry = it.next();
+        entry.getValue().remove(listener);
+        //noinspection SizeReplaceableByIsEmpty
+        if (entry.getValue().size() == 0) {
+          it.remove();
+        }
       }
     }
 
