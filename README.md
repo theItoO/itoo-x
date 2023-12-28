@@ -5,6 +5,9 @@ Itoo X is a framework that creates a virtual App Inventor environment for backgr
 
 ## Usage for developers
 
+Add the latest Itoo X library ([GitHub releases](https://github.com/theItoO/itoo-x/releases)) as compile time dependency
+if you decide to use it with the Itoo extension or as runtime dependency.
+
 Example for simple usage of the framework:
 
 1. Add `Framework.create()` in your extension's constructor
