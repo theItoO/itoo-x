@@ -40,7 +40,7 @@ public class ItooCreator {
   public EnvironmentX envX;
   private InstanceForm formInst = null;
 
-  private final HashMap<String, Component> components = new HashMap<String, Component>();
+  private final Map<String, Component> components = new HashMap<String, Component>();
 
   private final Form activeForm;
   private IntInvoke intIvk;
