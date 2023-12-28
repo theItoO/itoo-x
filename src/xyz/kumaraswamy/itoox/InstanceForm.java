@@ -1,3 +1,7 @@
+// Copyright (C) 2023 Kumaraswamy B G
+// GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+// See LICENSE for full details
+
 package xyz.kumaraswamy.itoox;
 
 import android.app.Activity;
@@ -16,6 +20,7 @@ import gnu.mapping.Symbol;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 import xyz.kumaraswamy.itoox.ItooCreator.EnvironmentX;
 
@@ -82,16 +87,9 @@ public class InstanceForm {
 
     public LinearLayout baseLinearLayout;
 
-    public final HashMap<String, Object> symbols = new HashMap<>();
+    public final Map<String, Object> symbols = new HashMap<String, Object>();
 
     public SimpleEnvironment global$Mnvar$Mnenvironment = new SimpleEnvironment() {
-
-      public void addNewInt(Symbol key, Object newValue) {
-        // todo this isnt caled
-        Log.d(TAG, "put: " + key + " = " + newValue);
-        System.out.println(symbols);
-        symbols.put(key.getName(), newValue);
-      }
 
       @Override
       public boolean isBound(Symbol key, Object property) {

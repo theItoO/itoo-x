@@ -1,7 +1,12 @@
+// Copyright (C) 2023 Kumaraswamy B G
+// GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+// See LICENSE for full details
+
 package xyz.kumaraswamy.itoox;
 
 import android.content.Context;
 import android.util.Log;
+import com.google.appinventor.components.runtime.Form;
 
 public class Framework {
 
@@ -18,6 +23,11 @@ public class Framework {
       th.printStackTrace();
       return new FrameworkResult(false, th);
     }
+  }
+
+  public static void create() throws Throwable {
+    Form form = Form.getActiveForm();
+    ItooInt.saveIntStuff(form, form.getClass().getSimpleName());
   }
 
   public static class FrameworkResult {

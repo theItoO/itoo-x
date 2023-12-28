@@ -9,5 +9,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="dev-deps" level="project" />
     <orderEntry type="library" name="deps" level="project" />
+    <orderEntry type="library" name="appinventor" level="project" />
+    <orderEntry type="library" name="module" level="project" />
   </component>
 </module>
