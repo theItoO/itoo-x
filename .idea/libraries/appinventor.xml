@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="appinventor">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/deps/appinventor" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="file://$PROJECT_DIR$/deps/appinventor" recursive="false" />
+  </library>
+</component>

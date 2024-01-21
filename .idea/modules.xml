@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/itoo-x.iml" filepath="$PROJECT_DIR$/.idea/itoo-x.iml" />
+      <module fileurl="file://$PROJECT_DIR$/itoox-wrapper/itoox-wrapper.iml" filepath="$PROJECT_DIR$/itoox-wrapper/itoox-wrapper.iml" />
       <module fileurl="file://$PROJECT_DIR$/youngandroid/youngandroid.iml" filepath="$PROJECT_DIR$/youngandroid/youngandroid.iml" />
     </modules>
   </component>
