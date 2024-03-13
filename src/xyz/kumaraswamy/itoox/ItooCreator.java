@@ -5,7 +5,6 @@
 package xyz.kumaraswamy.itoox;
 
 import android.content.Context;
-import android.util.Log;
 import com.google.appinventor.components.runtime.Component;
 import com.google.appinventor.components.runtime.ComponentContainer;
 import com.google.appinventor.components.runtime.Form;
@@ -31,8 +30,6 @@ import java.util.Map;
 
 public class ItooCreator {
 
-  private static final String TAG = "ItooCreator";
-
   public final Context context;
   public final String refScreen;
   public final boolean appOpen;
@@ -46,12 +43,14 @@ public class ItooCreator {
   private IntInvoke intIvk;
   private ItooInt ints;
 
+  private final Log log;
+
   private boolean isStopped = false;
 
   public InstanceForm.Listener listener = new InstanceForm.Listener() {
     @Override
     public void event(Component component, String componentName, String eventName, Object... args) {
-      Log.d(TAG, "Event Default Triggered");
+
     }
   };
 
@@ -87,42 +86,43 @@ public class ItooCreator {
   ) throws Throwable {
     this.context = context;
     this.refScreen = refScreen;
+    log = new Log(context);
 
-    Log.d(TAG, "Itoo Creator, ref screen: " + refScreen + ", run if active = " + runIfActive);
+    log.debug("Itoo Creator, ref screen: " + refScreen + ", run if active = " + runIfActive);
 
     activeForm = Form.getActiveForm();
-    Log.d(TAG, "ItooCreator: active form = " + activeForm);
+    log.debug("ItooCreator: active form = " + activeForm);
     if (activeForm instanceof FormX) {
       appOpen = false;
     } else {
       appOpen = activeForm != null;
     }
-    Log.d(TAG, "ItooCreator: is the app active " + appOpen);
+    log.debug("ItooCreator: is the app active " + appOpen);
 
     if (!appOpen) {
       envX = new EnvironmentX();
-      Log.d(TAG, "ItooCreator: Pass 1");
+      log.debug("ItooCreator: Pass 1");
       languageInitialization();
-      Log.d(TAG, "ItooCreator: Pass 2");
+      log.debug("ItooCreator: Pass 2");
       activeFieldModification(true);
-      Log.d(TAG, "ItooCreator: Pass 3");
+      log.debug("ItooCreator: Pass 3");
       runtimeInitialization();
-      Log.d(TAG, "ItooCreator: Pass 4");
+      log.debug("ItooCreator: Pass 4");
       addIntsToEnvironment();
-      Log.d(TAG, "ItooCreator: Pass 5");
+      log.debug("ItooCreator: Pass 5");
       // warning: may break the project
-      Log.d(TAG, "ItooCreator: theme set");
+      log.debug("ItooCreator: theme set");
       context.setTheme(2131427488);
     }
     if (!appOpen || runIfActive) {
       if (ints == null) {
-        Log.d(TAG, "Initializing Ints");
+        log.debug("Initializing Ints");
         initializeIntVars();
       }
-      Log.d(TAG, "ItooCreator: app ref instance " + Class.forName(
+      log.debug("ItooCreator: app ref instance " + Class.forName(
           ints.getScreenPkgName(refScreen)).getConstructor().newInstance());
     } else {
-      Log.i(TAG, "Reject Initialization");
+      log.debug("Reject Initialization");
     }
   }
 
@@ -140,7 +140,7 @@ public class ItooCreator {
     Map<String, ?> integers = ints.getAll();
     for (Map.Entry<String, ?> key : integers.entrySet()) {
       Integer value = (Integer) key.getValue();
-      Log.d(TAG, "addIntsToEnvironment: add int (" + key.getKey() + ", " + value + ")");
+      log.info("addIntsToEnvironment: add int (" + key.getKey() + ", " + value + ")");
       // todo test thus on 10-6-22
       formInst.formX.symbols.put(ItooInt.PROCEDURE_PREFIX + key.getKey()
           , new IntBody(value, 0));
@@ -159,9 +159,9 @@ public class ItooCreator {
 
   public Object startProcedureInvoke(String procName, Object... args) throws Throwable {
     int _int = ints.getInt(procName);
-    Log.d(TAG, "startProcedureInvoke: " + procName + " & " + _int);
+    log.info("startProcedureInvoke: " + procName + " & " + _int);
     if (_int == -1) {
-      Log.d(TAG, "startProcedureInvoke: failed to find name(" + procName + ")");
+      log.info("startProcedureInvoke: failed to find name(" + procName + ")");
       return null;
     }
     return intIvk.intInvoke(_int, args);
@@ -181,7 +181,7 @@ public class ItooCreator {
     // when the service is being stopped by the Android system
     // we need to be quicker
     isStopped = true;
-    Log.d(TAG, "flagEnd() called");
+    log.debug("flagEnd() called");
     for (EndListener endListener : endListeners) {
       endListener.onEnd();
     }
@@ -198,8 +198,8 @@ public class ItooCreator {
   // itoo framework
 
   public void onAppStopped() {
-    Log.d(TAG, "Creator received onPause()");
-    Log.d(TAG, "Texting Running = " + Texting.isRunning());
+    log.debug("Creator received onPause()");
+    log.debug("Texting Running = " + Texting.isRunning());
   }
 
   private void callSilently(Component component, String name) {
@@ -217,7 +217,7 @@ public class ItooCreator {
 
     public IntInvoke() throws Exception {
       String className = ints.getScreenPkgName(refScreen) + "$frame";
-      Log.d(TAG, "IntInvoke: the attempt class name: " + className);
+      log.debug("IntInvoke: the attempt class name: " + className);
       Class<?> clazz = Class.forName(className);
       frameX = (ModuleBody) clazz.getConstructor().newInstance();
     }
@@ -234,7 +234,7 @@ public class ItooCreator {
 
     @SuppressWarnings("UnusedReturnValue")
     public Object applySlex(ModuleMethod method, Object... args) throws Throwable {
-      Log.d(TAG, "applySlex: " + method + " " + Arrays.toString(args));
+      log.info("applySlex: " + method + " " + Arrays.toString(args));
       switch (args.length) {
         case 0:
           return frameX.apply0(method);
@@ -260,7 +260,7 @@ public class ItooCreator {
 
     @Override
     public Object applyN(Object[] args) throws Throwable {
-      Log.d(TAG, "applyN: with args(" + Arrays.toString(args) + ")");
+      log.info("applyN: with args(" + Arrays.toString(args) + ")");
       return intIvk.applySlex(this, args);
     }
   }
@@ -284,7 +284,7 @@ public class ItooCreator {
   }
 
   private Form formInstance() throws Exception {
-    formInst = new InstanceForm(this);
+    formInst = new InstanceForm(this, log);
     formInst.formX.creator = this;
 
     float deviceDensity = context.getResources().getDisplayMetrics().density;
@@ -303,7 +303,7 @@ public class ItooCreator {
   private void languageInitialization() throws Exception {
     Language language = Scheme.getInstance();
     if (language == null) {
-      Log.i(TAG, "Language = null");
+      log.debug("Language == null");
     }
     Language.setCurrentLanguage(language);
     activeFieldModification(false);
@@ -319,7 +319,7 @@ public class ItooCreator {
 
     @Override
     public boolean isBound(Symbol key, Object property) {
-      Log.d(TAG, "isBound: " + key.getName());
+      log.info("isBound: " + key.getName());
       String name = key.getName();
       if (!components.containsKey(name)) {
         try {
@@ -343,12 +343,12 @@ public class ItooCreator {
     }
 
     private Component getComponent(String name, String packageNameOf) throws Exception {
-      Log.d(TAG, "Create component = " + name + " = " + packageNameOf);
+      log.info("Create component = " + name + " = " + packageNameOf);
       Class<?> clazz;
       try {
         clazz = Class.forName(packageNameOf);
       } catch (ClassNotFoundException e) {
-        Log.d(TAG, "Component Not found Name = " + packageNameOf + " realName = " + name);
+        log.info("Component Not found Name = " + packageNameOf + " realName = " + name);
         throw e;
       }
       Constructor<?> constructor;
