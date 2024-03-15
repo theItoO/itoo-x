@@ -157,6 +157,10 @@ public class ItooCreator {
     return envX.getComponent(pkgName, ints.getPackageNameOf(pkgName));
   }
 
+  public String getComponentName(Component component) {
+    return envX.toSimpleName(component);
+  }
+
   public Object startProcedureInvoke(String procName, Object... args) throws Throwable {
     int _int = ints.getInt(procName);
     log.info("startProcedureInvoke: " + procName + " & " + _int);

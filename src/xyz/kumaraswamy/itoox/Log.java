@@ -14,8 +14,8 @@ public class Log {
   private final boolean logEnabled;
 
   public Log(Context context) {
-    SharedPreferences preferences = context.getSharedPreferences("AdditionalItooConfig", Context.MODE_PRIVATE);
-    logEnabled = preferences.getBoolean("log_enabled", true);
+    ItooPreferences preferences = new ItooPreferences(context, "AdditionalItooConfig");
+    logEnabled = (boolean) preferences.read("debug_mode", true);
   }
 
   public void warn(String message) {
