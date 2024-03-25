@@ -18,6 +18,7 @@ import gnu.mapping.SimpleEnvironment;
 import gnu.mapping.Symbol;
 import kawa.standard.Scheme;
 import xyz.kumaraswamy.itoox.InstanceForm.FormX;
+import xyz.kumaraswamy.itoox.reflective.Reflective;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -151,10 +152,6 @@ public class ItooCreator {
     Form form = appOpen ? activeForm : formInst.formX;
     ints = new ItooInt(form, refScreen);
     intIvk = new IntInvoke();
-  }
-
-  public Component getInstance(String pkgName) throws Exception {
-    return envX.getComponent(pkgName, ints.getPackageNameOf(pkgName));
   }
 
   public String getComponentName(Component component) {
@@ -339,29 +336,13 @@ public class ItooCreator {
     private void componentInstance(Symbol symbol)
         throws Exception {
       String name = symbol.getName();
-      Component component = name.equals(refScreen) ? formInst.formX : getComponent(name, ints.getPackageNameOf(name));
+      Component component = name.equals(refScreen)
+              ? formInst.formX
+              : Reflective.componentInstance(formInstance(), ints.getPackageNameOf(name));
 
       put(symbol, component);
       names.put(component, name);
       components.put(name, component);
-    }
-
-    private Component getComponent(String name, String packageNameOf) throws Exception {
-      log.info("Create component = " + name + " = " + packageNameOf);
-      Class<?> clazz;
-      try {
-        clazz = Class.forName(packageNameOf);
-      } catch (ClassNotFoundException e) {
-        log.info("Component Not found Name = " + packageNameOf + " realName = " + name);
-        throw e;
-      }
-      Constructor<?> constructor;
-      try {
-        constructor = clazz.getConstructor(ComponentContainer.class);
-      } catch (NoSuchMethodException e) {
-        constructor = clazz.getConstructor(Form.class);
-      }
-      return (Component) constructor.newInstance(formInstance());
     }
   }
 }
