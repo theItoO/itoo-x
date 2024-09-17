@@ -1,3 +1,7 @@
+// Copyright (C) 2023 Kumaraswamy B G
+// GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+// See LICENSE for full details
+
 package xyz.kumaraswamy.itoox;
 
 import android.content.BroadcastReceiver;
