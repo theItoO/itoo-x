@@ -5,10 +5,12 @@
 package xyz.kumaraswamy.itoox;
 
 import android.content.Context;
+import android.content.Intent;
 import com.google.appinventor.components.runtime.Component;
 import com.google.appinventor.components.runtime.ComponentContainer;
 import com.google.appinventor.components.runtime.Form;
 import com.google.appinventor.components.runtime.Texting;
+import com.google.appinventor.components.runtime.util.JsonUtil;
 import com.google.youngandroid.runtime;
 import gnu.expr.Language;
 import gnu.expr.ModuleBody;
@@ -37,20 +39,24 @@ public class ItooCreator {
   public EnvironmentX envX;
   private InstanceForm formInst = null;
 
-  private final Map<String, Component> components = new HashMap<String, Component>();
+  private final Map<String, Component> components = new HashMap<>();
 
   private final Form activeForm;
   private IntInvoke intIvk;
   private ItooInt ints;
 
-  private final Log log;
+  public final Log log;
 
   private boolean isStopped = false;
 
+  // A broadcast receiver. UI tells us to call a procedure in background
+  private final BackgroundProcedureReceiver bgProcedureReceiver;
+
   public InstanceForm.Listener listener = new InstanceForm.Listener() {
     @Override
-    public void event(Component component, String componentName, String eventName, Object... args) {
-
+    public void event(Component component, String componentName, String eventName, Object... args) throws Throwable {
+      String procedure = componentName + "_" + eventName;
+      startProcedureInvoke(procedure, args);
     }
   };
 
@@ -98,6 +104,7 @@ public class ItooCreator {
       appOpen = activeForm != null;
     }
     log.debug("ItooCreator: is the app active " + appOpen);
+    bgProcedureReceiver = new BackgroundProcedureReceiver(this);
 
     if (!appOpen) {
       envX = new EnvironmentX();
@@ -139,11 +146,13 @@ public class ItooCreator {
 
     Map<String, ?> integers = ints.getAll();
     for (Map.Entry<String, ?> key : integers.entrySet()) {
+      String name = key.getKey();
       Integer value = (Integer) key.getValue();
-      log.info("addIntsToEnvironment: add int (" + key.getKey() + ", " + value + ")");
+      log.info("addIntsToEnvironment: add int (" + name + ", " + value + ")");
       // todo test thus on 10-6-22
-      formInst.formX.symbols.put(ItooInt.PROCEDURE_PREFIX + key.getKey()
-          , new IntBody(value, 0));
+      //  17-9-24: nvm
+      ModuleMethod body = name.startsWith("ui_") ? new IntUIBody(name, value, 0) : new IntBody(value, 0);
+      formInst.formX.symbols.put(ItooInt.PROCEDURE_PREFIX + name, body);
     }
   }
 
@@ -196,6 +205,7 @@ public class ItooCreator {
     }
     Language.setCurrentLanguage(null);
     activeFieldModification(false);
+    bgProcedureReceiver.unregister();
   }
 
   // called the extension implementing the
@@ -266,6 +276,32 @@ public class ItooCreator {
     public Object applyN(Object[] args) throws Throwable {
       log.info("applyN: with args(" + Arrays.toString(args) + ")");
       return intIvk.applySlex(this, args);
+    }
+  }
+
+  class IntUIBody extends ModuleMethod {
+    // Special class for procedures that have to be redirected to the UI
+
+    private final String procedureName;
+
+    public IntUIBody(String procedureName, int selector, int args) {
+      super(null, selector, null, args);
+      this.procedureName = procedureName;
+    }
+
+    @Override
+    public Object applyN(Object[] args) throws Throwable {
+      int argsLen = args.length;
+      String[] jsonArgs = new String[argsLen];
+      for (int i = 0; i < argsLen; i++) {
+        jsonArgs[i] = JsonUtil.getJsonRepresentation(args[i]);
+      }
+      Intent intent = new Intent(UIProcedureInvocation.ACTION);
+      intent.putExtra("procedure", procedureName);
+      intent.putExtra("args", jsonArgs);
+      intent.setPackage(context.getPackageName());
+      context.sendBroadcast(intent);
+      return true;
     }
   }
 
