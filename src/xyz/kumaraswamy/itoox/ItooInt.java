@@ -34,10 +34,10 @@ public class ItooInt {
   private final SharedPreferences prefComponents;
   private final JSONObject screenPkgNames;
 
-  public ItooInt(Form form, String refScreen) throws JSONException {
-    prefInts = getSharedPreference(form, refScreen, 0);
-    prefComponents = getSharedPreference(form, refScreen, 1);
-    screenPkgNames = new JSONObject(getSharedPreference(form, "", 2).getString("names", "{}"));
+  public ItooInt(Context context, String refScreen) throws JSONException {
+    prefInts = getSharedPreference(context, refScreen, 0);
+    prefComponents = getSharedPreference(context, refScreen, 1);
+    screenPkgNames = new JSONObject(getSharedPreference(context, "", 2).getString("names", "{}"));
   }
 
   public int getInt(String name) {
@@ -121,8 +121,8 @@ public class ItooInt {
     editor.commit();
   }
 
-  private static SharedPreferences getSharedPreference(Form form, String refScreen, int type) {
-    return form.getSharedPreferences(
+  private static SharedPreferences getSharedPreference(Context context, String refScreen, int type) {
+    return context.getSharedPreferences(
             "ItooInt_" + type + "_" + refScreen, Context.MODE_PRIVATE);
   }
 
