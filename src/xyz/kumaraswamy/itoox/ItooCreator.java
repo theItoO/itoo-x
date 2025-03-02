@@ -327,6 +327,8 @@ public class ItooCreator {
     formInst = new InstanceForm(this, log);
     formInst.formX.creator = this;
 
+    envX.names.put(formInst.formX, refScreen);
+
     float deviceDensity = context.getResources().getDisplayMetrics().density;
     set("deviceDensity", deviceDensity);
     set("formWidth", (int) ((float) context.getResources().getDisplayMetrics().widthPixels / deviceDensity));
